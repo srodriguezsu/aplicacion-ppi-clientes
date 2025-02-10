@@ -37,12 +37,30 @@ def mapa_ubicacion(df, filtro=None, valor=None):
     st.pyplot(fig)
 
 def cluster_frecuencia(df):
-    data = df[['Frecuencia_Compra']].dropna()
-    linkage_matrix = linkage(data, method='ward')
-    fig, ax = plt.subplots(figsize=(8, 6))
-    dendrogram(linkage_matrix, labels=df.index, leaf_rotation=90, ax=ax)
-    ax.set_title('Clúster de Frecuencia de Compra')
-    st.pyplot(fig)
+    """
+    Realiza un análisis de clúster según la frecuencia de compra.
+    Convierte la variable categórica en valores numéricos antes de aplicar clustering.
+    """
+    # Mapeo de categorías a valores numéricos
+    categoria_a_numero = {'Baja': 0, 'Media': 1, 'Alta': 2}
+    df['Frecuencia_Compra_Num'] = df['Frecuencia_Compra'].map(categoria_a_numero)
+
+    # Filtrar valores nulos después de la conversión
+    data = df[['Frecuencia_Compra_Num']].dropna()
+
+    try:
+        # Aplicar clustering jerárquico
+        linkage_matrix = linkage(data, method='ward')
+
+        # Graficar dendrograma
+        fig, ax = plt.subplots(figsize=(8, 6))
+        dendrogram(linkage_matrix, labels=df.index, leaf_rotation=90, ax=ax)
+        ax.set_title('Clúster de Frecuencia de Compra')
+
+        # Mostrar en Streamlit
+        st.pyplot(fig)
+    except ValueError as e:
+        st.error(f"Error en el clustering: {e}")
 
 def grafico_barras(df):
     fig, ax = plt.subplots(figsize=(8, 6))
