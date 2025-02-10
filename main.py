@@ -124,47 +124,36 @@ def process_dataframe(df):
 def correlacion_edad_ingreso(df, segmentar_por=None):
     """
     Genera un gráfico de dispersión y calcula la correlación entre edad e ingreso anual.
-    
-    Parámetros:
-    - df (pd.DataFrame): DataFrame con los datos de clientes.
-    - segmentar_por (str, opcional): Columna para segmentar (ej. 'Género', 'Frecuencia_Compra').
-    
-    Retorna:
-    - Matriz de correlación y gráfico.
     """
-    plt.figure(figsize=(8, 6))
-    
+    fig, ax = plt.subplots(figsize=(8, 6))
+
     if segmentar_por:
-        sns.scatterplot(data=df, x='Edad', y='Ingreso_Anual_USD', hue=df[segmentar_por])
+        sns.scatterplot(data=df, x='Edad', y='Ingreso_Anual_USD', hue=df[segmentar_por], ax=ax)
     else:
-        sns.scatterplot(data=df, x='Edad', y='Ingreso_Anual_USD')
-    
-    plt.title(f'Correlación entre Edad e Ingreso Anual {"por " + segmentar_por if segmentar_por else ""}')
-    plt.show()
-    
+        sns.scatterplot(data=df, x='Edad', y='Ingreso_Anual_USD', ax=ax)
+
+    ax.set_title(f'Correlación entre Edad e Ingreso Anual {"por " + segmentar_por if segmentar_por else ""}')
+    st.pyplot(fig)  # ✅ Se usa st.pyplot en vez de plt.show()
+
     return df[['Edad', 'Ingreso_Anual_USD']].corr()
 
 
 def mapa_ubicacion(df, filtro=None, valor=None):
     """
     Genera un mapa de ubicaciones de clientes.
-    
-    Parámetros:
-    - df (pd.DataFrame): DataFrame con latitud y longitud.
-    - filtro (str, opcional): Columna para filtrar (ej. 'Género', 'Frecuencia_Compra').
-    - valor (varios, opcional): Valor de la columna filtro a mostrar.
-    
-    Retorna:
-    - Mapa de ubicaciones.
     """
     gdf = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df.Longitud, df.Latitud))
     
     if filtro and valor:
         gdf = gdf[gdf[filtro] == valor]
 
-    gdf.plot(markersize=5, figsize=(8, 6), alpha=0.5)
-    plt.title(f'Mapa de Ubicación de Clientes {" - " + filtro + ": " + str(valor) if filtro else ""}')
-    plt.show()
+    fig, ax = plt.subplots(figsize=(8, 6))
+    gdf.plot(markersize=5, alpha=0.5, ax=ax)
+    ax.set_title(f'Mapa de Ubicación de Clientes {" - " + filtro + ": " + str(valor) if filtro else ""}')
+    
+    st.pyplot(fig)  # ✅ Se usa st.pyplot en vez de plt.show()
+
+
 
 def mapa_personalizado(df, filtros):
     """
@@ -186,51 +175,42 @@ def mapa_personalizado(df, filtros):
 def cluster_frecuencia(df):
     """
     Realiza un análisis de clúster según la frecuencia de compra.
-    
-    Parámetros:
-    - df (pd.DataFrame): DataFrame con la columna 'Frecuencia_Compra'.
-    
-    Retorna:
-    - Dendrograma de clustering.
     """
     data = df[['Frecuencia_Compra']].dropna()
     linkage_matrix = linkage(data, method='ward')
-    
-    plt.figure(figsize=(8, 6))
-    dendrogram(linkage_matrix, labels=df.index, leaf_rotation=90)
-    plt.title('Clúster de Frecuencia de Compra')
-    plt.show()
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+    dendrogram(linkage_matrix, labels=df.index, leaf_rotation=90, ax=ax)
+    ax.set_title('Clúster de Frecuencia de Compra')
+
+    st.pyplot(fig)  # ✅ Se usa st.pyplot en vez de plt.show()
+
 
 def grafico_barras(df):
     """
     Genera un gráfico de barras mostrando la cantidad de clientes por género y frecuencia de compra.
-    
-    Parámetros:
-    - df (pd.DataFrame): DataFrame con 'Género' y 'Frecuencia_Compra'.
-    
-    Retorna:
-    - Gráfico de barras.
     """
-    df.groupby(['Género', 'Frecuencia_Compra']).size().unstack().plot(kind='bar', figsize=(8, 6))
-    plt.title('Distribución de Clientes por Género y Frecuencia de Compra')
-    plt.xlabel('Género')
-    plt.ylabel('Cantidad de Clientes')
-    plt.show()
+    fig, ax = plt.subplots(figsize=(8, 6))
+
+    df.groupby(['Género', 'Frecuencia_Compra']).size().unstack().plot(kind='bar', ax=ax)
+    ax.set_title('Distribución de Clientes por Género y Frecuencia de Compra')
+    ax.set_xlabel('Género')
+    ax.set_ylabel('Cantidad de Clientes')
+
+    st.pyplot(fig)  # ✅ Se usa st.pyplot en vez de plt.show()
+
 
 def mapa_calor_ingresos(df):
     """
     Genera un mapa de calor mostrando la relación entre ingreso anual y ubicación geográfica.
-    
-    Parámetros:
-    - df (pd.DataFrame): DataFrame con 'Latitud', 'Longitud' e 'Ingreso_Anual_USD'.
-    
-    Retorna:
-    - Mapa de calor.
     """
-    plt.figure(figsize=(8, 6))
-    sns.kdeplot(x=df.Longitud, y=df.Latitud, weights=df.Ingreso_Anual_USD, cmap="Reds", fill=True)
-    plt.title('Mapa de Calor de Ingresos')
-    plt.show()
+    fig, ax = plt.subplots(figsize=(8, 6))
+
+    sns.kdeplot(x=df.Longitud, y=df.Latitud, weights=df.Ingreso_Anual_USD, cmap="Reds", fill=True, ax=ax)
+    ax.set_title('Mapa de Calor de Ingresos')
+
+    st.pyplot(fig)  # ✅ Se usa st.pyplot en vez de plt.show()
+
 
 
 def distancia_altos_ingresos(df, segmentar_por=None):
