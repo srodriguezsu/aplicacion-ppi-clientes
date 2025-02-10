@@ -95,10 +95,44 @@ def grafico_barras(df):
     st.pyplot(fig)
 
 def mapa_calor_ingresos(df):
-    fig, ax = plt.subplots(figsize=(8, 6))
-    sns.kdeplot(x=df.Longitud, y=df.Latitud, weights=df.Ingreso_Anual_USD, cmap="Reds", fill=True, ax=ax)
-    ax.set_title('Mapa de Calor de Ingresos')
+    """
+    Genera un mapa de calor mostrando la relación entre ingresos y ubicación geográfica 
+    sobre un mapa de Sudamérica utilizando Geopandas.
+    
+    Parámetros:
+    - df (pd.DataFrame): DataFrame con 'Longitud', 'Latitud' e 'Ingreso_Anual_USD'.
+    """
+    
+    # Cargar el mapa de Sudamérica usando geopandas
+    world = gpd.read_file("https://naciscdn.org/naturalearth/110m/cultural/ne_110m_admin_0_countries.zip")
+    world = world[world["CONTINENT"] == "South America"]
+    
+    # Crear un GeoDataFrame con las coordenadas de los clientes
+    gdf = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df.Longitud, df.Latitud))
+
+    # Establecer un sistema de coordenadas proyectadas (puedes elegir otro si es necesario)
+    gdf = gdf.set_crs("EPSG:4326")  # WGS84 (lat/lon)
+
+    # Crear una figura para la visualización
+    fig, ax = plt.subplots(figsize=(10, 10))
+    
+    # Dibujar el mapa base de Sudamérica
+    world.plot(ax=ax, color='lightgray')
+
+    # Añadir el mapa de calor (kdeplot) sobre el mapa de Sudamérica
+    sns.kdeplot(
+        x=gdf.Longitud, y=gdf.Latitud, 
+        weights=gdf.Ingreso_Anual_USD, cmap="Reds", fill=True, 
+        ax=ax, alpha=0.6
+    )
+
+    ax.set_title('Mapa de Calor de Ingresos sobre Sudamérica')
+    ax.set_xlabel('Longitud')
+    ax.set_ylabel('Latitud')
+    
+    # Mostrar el gráfico en Streamlit
     st.pyplot(fig)
+
 
 def distancia_altos_ingresos(df, segmentar_por=None):
     if segmentar_por:
@@ -123,7 +157,7 @@ if df is not None:
     mapa_ubicacion(df, filtro if filtro != "Ninguno" else None, valor)
     
     st.subheader("Correlación Edad-Ingreso")
-    segmentar_por = st.sidebar.selectbox("Segmentar correlación por", ["Ninguno", "Género", "Frecuencia_Compra"])
+    segmentar_por = st.selectbox("Segmentar correlación por", ["Ninguno", "Género", "Frecuencia_Compra"])
     correlacion_edad_ingreso(df, segmentar_por if segmentar_por != "Ninguno" else None)
     
     st.subheader("Clúster de Frecuencia de Compra")
@@ -136,6 +170,6 @@ if df is not None:
     grafico_barras(df)
     
     st.subheader("Distancias entre Compradores de Altos Ingresos")
-    segmentar_dist = st.sidebar.selectbox("Segmentar distancias por", ["Ninguno", "Género", "Frecuencia_Compra"])
+    segmentar_dist = st.selectbox("Segmentar distancias por", ["Ninguno", "Género", "Frecuencia_Compra"])
     distancias = distancia_altos_ingresos(df, segmentar_dist if segmentar_dist != "Ninguno" else None)
     st.write(distancias)
