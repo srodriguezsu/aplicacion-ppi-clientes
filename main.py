@@ -52,7 +52,6 @@ def mapa_ubicacion(df, filtro=None, valor=None):
     gdf = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df.Longitud, df.Latitud))
     world = gpd.read_file("https://naciscdn.org/naturalearth/110m/cultural\
 /ne_110m_admin_0_countries.zip")
-    world = world[world["CONTINENT"] == "America"]
 
     if filtro and valor:
         gdf = gdf[gdf[filtro] == valor]
