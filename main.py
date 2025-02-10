@@ -7,92 +7,11 @@ from scipy.cluster.hierarchy import dendrogram, linkage
 from scipy.spatial.distance import pdist, squareform
 import streamlit as st
 
-def get_ranges(df):
-    # Definir bins y labels para Edad
-    bins_edad = [10, 20, 30, 40, 50, 60, 70]
-    labels_edad = ['10-20', '20-30', '30-40', '40-50', '50-60', '60-70']
-    df['Edad_Rango'] = pd.cut(df['Edad'], bins=bins_edad, labels=labels_edad, right=False)
-    
-    # Definir bins y labels para Ingreso Anual (de 0 a 100k en saltos de 10k)
-    bins_ingreso = list(range(0, 110000, 10000))  
-    labels_ingreso = ['0-10000', '10000-20000', '20000-30000', '30000-40000', 
-                      '40000-50000', '50000-60000', '60000-70000', '70000-80000', 
-                      '80000-90000', '90000-100000']
-
-    df['Ingreso_Rango'] = pd.cut(df['Ingreso_Anual_USD'], bins=bins_ingreso, labels=labels_ingreso, right=False)
-
-
-    return df
-
-
-def group_for_categorica(df, column, group_columns):
-    df_filled = df.copy()
-    other_columns = list(df.columns)
-    other_columns.remove(column)
-    not_null_rows = df_filled.copy()
-    not_null_rows.dropna(inplace=True)
-    
-
-    modas = not_null_rows.groupby(group_columns, observed=True)[column].agg(pd.Series.mode )
-    modas = modas.explode().groupby(level=group_columns).first()
-    return modas
-
-
-def group_for_numericas(df, column, group_columns):
-    df_filled = df.copy()
-    other_columns = list(df.columns)
-    other_columns.remove(column)
-    not_null_rows = df_filled.copy()
-    not_null_rows.dropna(inplace=True)
-    not_null_rows = get_ranges(not_null_rows)
-    
-    mean = not_null_rows.groupby(group_columns, observed=True)[column].agg(pd.Series.mean )
-    return mean
-
-
-def fill_categorica(df, column, criteria):
-    """
-    Rellena valores nulos en una columna categórica basada en la moda de grupos.
-
-    Parámetros:
-        df (pd.DataFrame): DataFrame original.
-        column (str): Nombre de la columna categórica a rellenar.
-        criteria (list): Columnas usadas para definir los grupos.
-
-    Retorna:
-        pd.DataFrame: DataFrame con los valores categóricos rellenados.
-    """
-    grouped = group_for_categorica(df, column, criteria)
-    mode = df[column].mode().iloc[0]
-    # Usamos transform para aplicar la moda de los grupos a cada fila con NaN
-    df[column] = df[column].fillna(df[criteria].apply(lambda row: grouped.get(tuple(row), mode), axis=1))
-    
-    return df
-
-
-def fill_numericas(df, column, criteria):
-    """
-    Rellena valores nulos en una columna categórica basada en la moda de grupos.
-
-    Parámetros:
-        df (pd.DataFrame): DataFrame original.
-        column (str): Nombre de la columna categórica a rellenar.
-        criteria (list): Columnas usadas para definir los grupos.
-
-    Retorna:
-        pd.DataFrame: DataFrame con los valores categóricos rellenados.
-    """
-    grouped = group_for_numericas(df, column, criteria)
-    mean = df[column].mean()
-    # Usamos transform para aplicar la moda de los grupos a cada fila con NaN
-    df[column] = df[column].fillna(df[criteria].apply(lambda row: grouped.get(tuple(row), mean), axis=1))
-    
-    return df
 
 def process_dataframe(df):
     """
-    Procesa un DataFrame rellenando valores nulos en columnas categóricas y numéricas
-    basándose en grupos relevantes.
+    Procesa un DataFrame rellenando valores nulos en columnas numéricas con la media
+    y en columnas categóricas con la moda.
 
     Parámetros:
         df: DataFrame original con valores nulos.
@@ -101,24 +20,20 @@ def process_dataframe(df):
         DataFrame procesado con los valores interpolados.
     """
     df_og = df.copy()
-    df = get_ranges(df)
 
-    # Llenar valores categóricos según grupos relevantes
-    df = fill_categorica(df, 'Nombre', ['Género', 'Frecuencia_Compra'])  # Frecuencia puede estar relacionada con el tipo de cliente.
-    df = fill_numericas(df, 'Edad', ['Ingreso_Rango', 'Frecuencia_Compra'])  # La edad puede estar correlacionada con ingreso y frecuencia de compra.
-    df = fill_categorica(df, 'Género', ['Nombre', 'Ingreso_Rango'])  # El género podría estar relacionado con algunos nombres y el nivel de ingresos.
-    df = fill_numericas(df, 'Ingreso_Anual_USD', ['Edad', 'Frecuencia_Compra'])  # Relacionamos ingreso con edad y frecuencia de compra.
-    df = fill_numericas(df, 'Historial_Compras', ['Edad', 'Ingreso_Anual_USD', 'Frecuencia_Compra'])  # Consideramos ingresos y edad para predecir historial de compras.
-    df = fill_categorica(df, 'Frecuencia_Compra', ['Ingreso_Rango', 'Historial_Compras'])  # La frecuencia de compra puede depender del ingreso y compras previas.
-    df = fill_numericas(df, 'Latitud', ['Ingreso_Anual_USD', 'Frecuencia_Compra'])  # Los clientes con mayores ingresos pueden vivir en zonas específicas.
-    df = fill_numericas(df, 'Longitud', ['Ingreso_Anual_USD', 'Frecuencia_Compra'])  # Similar a la latitud, ajustamos por ubicación e ingresos.
+    # Iterar sobre las columnas del DataFrame
+    for column in df.columns:
+        if df[column].dtype == 'object':  # Si la columna es categórica
+            # Llenar valores nulos con la moda
+            mode_value = df[column].mode().iloc[0]
+            df[column] = df[column].fillna(mode_value)
+        else:  # Si la columna es numérica
+            # Llenar valores nulos con la media
+            mean_value = df[column].mean()
+            df[column] = df[column].fillna(mean_value)
 
-    df = get_ranges(df)
-    df.dropna()
-    # Llenar valores numéricos según grupos relevantes
-    df = get_ranges(df)
-    
     return df
+
 
 def load_data(file, url):
     if file is not None:
