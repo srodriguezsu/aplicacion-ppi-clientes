@@ -114,6 +114,7 @@ def process_dataframe(df):
     df = fill_numericas(df, 'Longitud', ['Ingreso_Anual_USD', 'Frecuencia_Compra'])  # Similar a la latitud, ajustamos por ubicación e ingresos.
 
     df = get_ranges(df)
+    df.dropna()
     # Llenar valores numéricos según grupos relevantes
     df = get_ranges(df)
     
