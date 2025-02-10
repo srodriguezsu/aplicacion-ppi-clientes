@@ -286,12 +286,10 @@ if df is not None:
     st.write("Vista previa de los datos:")
     st.dataframe(df)
 
-st.title("Análisis de Datos de Clientes")
-
 # Mapa de ubicación
 st.subheader("Mapa de Ubicación")
-filtro = st.sidebar.selectbox("Filtrar mapa por", ["Ninguno", "Género", "Frecuencia_Compra"])
-valor = st.sidebar.selectbox("Valor", df[filtro].unique()) if filtro != "Ninguno" else None
+filtro = st.selectbox("Filtrar mapa por", ["Ninguno", "Género", "Frecuencia_Compra"])
+valor = st.selectbox("Valor", df[filtro].unique()) if filtro != "Ninguno" else None
 mapa_ubicacion(df, filtro if filtro != "Ninguno" else None, valor)
 
 # Correlación Edad-Ingreso
