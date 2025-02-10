@@ -286,29 +286,35 @@ if df is not None:
     st.write("Vista previa de los datos:")
     st.dataframe(df)
 
-if st.sidebar.checkbox("Mostrar Mapa de Ubicación"):
-    filtro = st.sidebar.selectbox("Filtrar por", ["Ninguno", "Género", "Frecuencia_Compra"])
-    valor = None
-    if filtro != "Ninguno":
-        valor = st.sidebar.selectbox("Valor", df[filtro].unique())
-    mapa_ubicacion(df, filtro if filtro != "Ninguno" else None, valor)
+st.title("Análisis de Datos de Clientes")
 
-if st.sidebar.checkbox("Mostrar Correlación Edad-Ingreso"):
-    segmentar_por = st.sidebar.selectbox("Segmentar por", ["Ninguno", "Género", "Frecuencia_Compra"])
-    correlacion_edad_ingreso(df, segmentar_por if segmentar_por != "Ninguno" else None)
+# Mapa de ubicación
+st.subheader("Mapa de Ubicación")
+filtro = st.sidebar.selectbox("Filtrar mapa por", ["Ninguno", "Género", "Frecuencia_Compra"])
+valor = st.sidebar.selectbox("Valor", df[filtro].unique()) if filtro != "Ninguno" else None
+mapa_ubicacion(df, filtro if filtro != "Ninguno" else None, valor)
 
-if st.sidebar.checkbox("Mostrar Clúster de Frecuencia de Compra"):
-    cluster_frecuencia(df)
+# Correlación Edad-Ingreso
+st.subheader("Correlación Edad-Ingreso")
+segmentar_por = st.sidebar.selectbox("Segmentar correlación por", ["Ninguno", "Género", "Frecuencia_Compra"])
+correlacion_edad_ingreso(df, segmentar_por if segmentar_por != "Ninguno" else None)
 
-if st.sidebar.checkbox("Mostrar Mapa de Calor de Ingresos"):
-    mapa_calor_ingresos(df)
+# Clúster de Frecuencia de Compra
+st.subheader("Clúster de Frecuencia de Compra")
+cluster_frecuencia(df)
 
-if st.sidebar.checkbox("Mostrar Gráfico de Barras"):
-    grafico_barras(df)
+# Mapa de Calor de Ingresos
+st.subheader("Mapa de Calor de Ingresos")
+mapa_calor_ingresos(df)
 
-if st.sidebar.checkbox("Mostrar Distancias entre Compradores de Altos Ingresos"):
-    segmentar_por = st.sidebar.selectbox("Segmentar distancias por", ["Ninguno", "Género", "Frecuencia_Compra"])
-    distancias = distancia_altos_ingresos(df, segmentar_por if segmentar_por != "Ninguno" else None)
-    st.write(distancias)
+# Gráfico de Barras
+st.subheader("Gráfico de Barras")
+grafico_barras(df)
+
+# Distancias entre Compradores de Altos Ingresos
+st.subheader("Distancias entre Compradores de Altos Ingresos")
+segmentar_dist = st.sidebar.selectbox("Segmentar distancias por", ["Ninguno", "Género", "Frecuencia_Compra"])
+distancias = distancia_altos_ingresos(df, segmentar_dist if segmentar_dist != "Ninguno" else None)
+st.write(distancias)
 
     
