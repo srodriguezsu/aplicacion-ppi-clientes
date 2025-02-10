@@ -64,8 +64,10 @@ def fill_categorica(df, column, criteria):
     """
     grouped = group_for_categorica(df, column, criteria)
     
+    mode_value = df[column].mode().iloc[0]  # Gets the first mode if multiple exist
+
     # Usamos transform para aplicar la moda de los grupos a cada fila con NaN
-    df[column] = df[column].fillna(df[criteria].apply(lambda row: grouped.get(tuple(row), None), axis=1))
+    df[column] = df[column].fillna(df[criteria].apply(lambda row: grouped.get(tuple(row), mode_value), axis=1))
     
     return df
 
@@ -83,9 +85,9 @@ def fill_numericas(df, column, criteria):
         pd.DataFrame: DataFrame con los valores categóricos rellenados.
     """
     grouped = group_for_numericas(df, column, criteria)
-    
+    mean_value = df[column].mean()
     # Usamos transform para aplicar la moda de los grupos a cada fila con NaN
-    df[column] = df[column].fillna(df[criteria].apply(lambda row: grouped.get(tuple(row), None), axis=1))
+    df[column] = df[column].fillna(df[criteria].apply(lambda row: grouped.get(tuple(row), mean_value), axis=1))
     
     return df
 
